@@ -1,0 +1,34 @@
+name: fitness_tracker_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  introduction_screen: ^3.1.12
+  uuid: ^4.2.1
+  riverpod_annotation: ^4.0.2
+  shared_preferences: ^2.5.4
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.9.0   # 🔽 DOWNGRADED
+  flutter_hooks: ^0.21.3+1
+  hooks_riverpod: ^3.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+  build_runner: ^2.4.8
+  freezed: ^3.1.0
+  json_serializable: ^6.8.0  # 🔽 DOWNGRADED
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
