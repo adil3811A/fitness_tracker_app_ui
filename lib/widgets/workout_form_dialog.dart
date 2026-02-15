@@ -2,44 +2,30 @@
 import 'package:fitness_tracker_app/enums/workout_type.dart';
 import 'package:fitness_tracker_app/providers/workout_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class WorkoutFormDialog extends StatefulWidget {
+class WorkoutFormDialog extends HookConsumerWidget {
   const WorkoutFormDialog({super.key});
 
   @override
-  State<WorkoutFormDialog> createState() => _WorkoutFormDialogState();
-}
-
-class _WorkoutFormDialogState extends State<WorkoutFormDialog> {
-  final formKey = GlobalKey<FormState>();
-  late final TextEditingController nameController;
-  late final TextEditingController weightController;
-  late final TextEditingController repsController;
-  late final TextEditingController setsController;
-  WorkoutType selectedType = WorkoutType.upperBody;
-
-  @override
-  void initState() {
-    super.initState();
-    nameController = TextEditingController();
-    weightController = TextEditingController();
-    repsController = TextEditingController();
-    setsController = TextEditingController();
+  Widget build(BuildContext context, WidgetRef ref) {
+      final formKey =useMemoized(() => GlobalKey<FormState>(),) ; //ensuer the you don't make multiple insted wile builing this wigit
+   final  nameController = useTextEditingController();
+   final  weightController = useTextEditingController();
+   final  repsController = useTextEditingController();
+   final  setsController = useTextEditingController();
+  final selectedType = useState(WorkoutType.upperBody);
+  void _submit(){
+    if(formKey.currentState?.validate()?? false){
+      ref.read(workoutProvider.notifier).addWorkdout(nameController.text, double.parse(weightController.text), double.parse(repsController.text), double.parse(setsController.text), selectedType.value);
+      Navigator.pop(context);
+    }
   }
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    weightController.dispose();
-    repsController.dispose();
-    setsController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer(
+  // useEffect(() {
+    
+  // },);
+      return Consumer(
       builder: (_, WidgetRef ref, __) {
         return AlertDialog(
           title: const Text('Add Workout'),
@@ -77,13 +63,14 @@ class _WorkoutFormDialogState extends State<WorkoutFormDialog> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<WorkoutType>(
-                  value: selectedType,
+                  value: selectedType.value,
                   onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        selectedType = value;
-                      });
-                    }
+                    // if (value != null) {
+                    //   setState(() {
+                    //     selectedType = value;
+                    //   });
+                    // }
+                    selectedType.value = value?? WorkoutType.upperBody;
                   },
                   items: const [
                     DropdownMenuItem(
@@ -105,15 +92,13 @@ class _WorkoutFormDialogState extends State<WorkoutFormDialog> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                ref.read(workoutProvider.notifier).addWorkdout(nameController.text, double.parse(weightController.text), double.parse(repsController.text), double.parse(setsController.text), selectedType);
-                Navigator.pop(context);
-              },
+              onPressed: _submit,
               child: const Text('Add'),
             ),
           ],
         );
       },
     );
+  
   }
 }
