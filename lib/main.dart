@@ -1,18 +1,31 @@
+import 'package:fitness_tracker_app/core/constents.dart';
+import 'package:fitness_tracker_app/providers/onboarding_provider.dart';
+import 'package:fitness_tracker_app/screens/workout_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'screens/onboarding_screen.dart';
 
 void main() async {
+  final sh  =await SharedPreferences.getInstance();
+  final hasSeen = sh.getBool(hasOnboard) ?? false;
   runApp(
-    const MyApp(),
+    ProviderScope(
+      overrides: [
+        hasSeenOnboardingProvider.overrideWithValue(hasSeen),
+      ],
+      child: const MyApp()
+      ),
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context,ref) {
+    final hasseen = ref.read(hasSeenOnboardingProvider);
     return MaterialApp(
       title: 'Fitness Tracker',
       theme: ThemeData(
@@ -46,7 +59,7 @@ class MyApp extends StatelessWidget {
           foregroundColor: Color(0xFF1A237E),
         ),
       ),
-      home: const OnboardingScreen(),
+      home: hasseen? const WorkoutListScreen() : const OnboardingScreen(),
     );
   }
 }

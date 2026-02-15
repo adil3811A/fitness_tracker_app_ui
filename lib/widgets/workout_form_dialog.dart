@@ -1,5 +1,8 @@
+
 import 'package:fitness_tracker_app/enums/workout_type.dart';
+import 'package:fitness_tracker_app/providers/workout_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class WorkoutFormDialog extends StatefulWidget {
   const WorkoutFormDialog({super.key});
@@ -34,80 +37,83 @@ class _WorkoutFormDialogState extends State<WorkoutFormDialog> {
     super.dispose();
   }
 
-  void submitForm() {
-    // Your submit form logic here
-  }
-
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Workout'),
-      content: Form(
-        key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
-              validator: (value) =>
-                  value?.isEmpty ?? true ? 'Please enter a name' : null,
-            ),
-            TextFormField(
-              controller: weightController,
-              decoration: const InputDecoration(labelText: 'Weight (kg)'),
-              keyboardType: TextInputType.number,
-              validator: (value) =>
-                  value?.isEmpty ?? true ? 'Please enter weight' : null,
-            ),
-            TextFormField(
-              controller: repsController,
-              decoration: const InputDecoration(labelText: 'Reps'),
-              keyboardType: TextInputType.number,
-              validator: (value) =>
-                  value?.isEmpty ?? true ? 'Please enter reps' : null,
-            ),
-            TextFormField(
-              controller: setsController,
-              decoration: const InputDecoration(labelText: 'Sets'),
-              keyboardType: TextInputType.number,
-              validator: (value) =>
-                  value?.isEmpty ?? true ? 'Please enter sets' : null,
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<WorkoutType>(
-              value: selectedType,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    selectedType = value;
-                  });
-                }
-              },
-              items: const [
-                DropdownMenuItem(
-                  value: WorkoutType.upperBody,
-                  child: Text('Upper Body'),
+    return Consumer(
+      builder: (_, WidgetRef ref, __) {
+        return AlertDialog(
+          title: const Text('Add Workout'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Please enter a name' : null,
                 ),
-                DropdownMenuItem(
-                  value: WorkoutType.lowerBody,
-                  child: Text('Lower Body'),
+                TextFormField(
+                  controller: weightController,
+                  decoration: const InputDecoration(labelText: 'Weight (kg)'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Please enter weight' : null,
+                ),
+                TextFormField(
+                  controller: repsController,
+                  decoration: const InputDecoration(labelText: 'Reps'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Please enter reps' : null,
+                ),
+                TextFormField(
+                  controller: setsController,
+                  decoration: const InputDecoration(labelText: 'Sets'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) =>
+                      value?.isEmpty ?? true ? 'Please enter sets' : null,
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<WorkoutType>(
+                  value: selectedType,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedType = value;
+                      });
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(
+                      value: WorkoutType.upperBody,
+                      child: Text('Upper Body'),
+                    ),
+                    DropdownMenuItem(
+                      value: WorkoutType.lowerBody,
+                      child: Text('Lower Body'),
+                    ),
+                  ],
                 ),
               ],
             ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(workoutProvider.notifier).addWorkdout(nameController.text, double.parse(weightController.text), double.parse(repsController.text), double.parse(setsController.text), selectedType);
+                Navigator.pop(context);
+              },
+              child: const Text('Add'),
+            ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: submitForm,
-          child: const Text('Add'),
-        ),
-      ],
+        );
+      },
     );
   }
 }
