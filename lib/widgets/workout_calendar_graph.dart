@@ -1,10 +1,35 @@
+import 'package:fitness_tracker_app/providers/workout_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class WorkoutCalendarGraph extends StatelessWidget {
+class WorkoutCalendarGraph extends HookConsumerWidget {
   const WorkoutCalendarGraph({super.key});
-
+String _formatDate(DateTime date) {
+    return '${date.year}-${date.month}-${date.day}';
+  }
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context , WidgetRef ref) {
+    final workouts = ref.watch(workoutProvider);
+    final startData = useMemoized(() {
+      final initialWorkout  = workouts.firstOrNull;
+      if(initialWorkout == null){
+        return DateTime.now();
+      }
+      return initialWorkout.createdAt;
+    },);
+    final count =  useMemoized(() {
+      final countsMap = <String, int>{};
+      for(final workout in workouts){
+        if(!workout.isCompleted){
+          continue;
+        }
+        final dateKey = _formatDate(workout.completedAt!);
+          countsMap[dateKey] = (countsMap[dateKey] ?? 0) + 1;
+         
+      }
+      return countsMap;
+    },[workouts]);
     return Container(
       height: 100,
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -41,7 +66,11 @@ class WorkoutCalendarGraph extends StatelessWidget {
           Expanded(
             child: Row(
               children: List.generate(31, (index) {
-                const opacity = .2;
+                final data = startData.add(Duration(days: index));
+                final dateKey = _formatDate(data);
+                final countForDay = count[dateKey] ?? 0;
+                final opacity =getGraphItemOpacity(countForDay);
+                // const opacity = .2;
 
                 return Expanded(
                   child: Tooltip(
@@ -50,15 +79,12 @@ class WorkoutCalendarGraph extends StatelessWidget {
                     child: Container(
                       margin: const EdgeInsets.all(1),
                       decoration: BoxDecoration(
-                        color: 2 > 0
-                            ? Theme.of(context)
+                        color:
+                             Theme.of(context)
                                 .colorScheme
                                 .primary
                                 .withOpacity(opacity)
-                            : Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.1),
+                            ,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -70,5 +96,15 @@ class WorkoutCalendarGraph extends StatelessWidget {
         ],
       ),
     );
+  }
+  
+  double getGraphItemOpacity(int countForDay) {
+    return switch(countForDay){
+      0 => 0.1,
+      1 => 0.4,
+      2 => 0.6,
+      3 => 0.8,
+      _ => .0,
+    };
   }
 }
