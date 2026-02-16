@@ -40,10 +40,20 @@ class WorkoutListScreen extends StatelessWidget {
                 ),
               ),
             ),
-            body: const TabBarView(
+            body: Column(
+              
               children: [
-                _WorkoutList(type: WorkoutType.upperBody),
-                _WorkoutList(type: WorkoutType.lowerBody),
+                TextButton(onPressed: () {
+                  ref.read(workoutProvider.notifier).clearCompletedWorkouts();
+                }, child: const Text("Clear Completed Workouts")),
+                 const Expanded(
+                  child: TabBarView(
+                    children: [
+                      _WorkoutList(type: WorkoutType.upperBody),
+                      _WorkoutList(type: WorkoutType.lowerBody),
+                    ],
+                  ),
+                ),
               ],
             ),
             floatingActionButton: FloatingActionButton(
@@ -71,51 +81,46 @@ class _WorkoutList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context ,ref) {
-    final workouts = ref.watch(workoutProvider);
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsetsGeometry.all(10),
-          child: Text('Total number of workout ${workouts.length}'),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: workouts.length,
-            itemBuilder: (context, index) {
-              final workout = workouts[index];
-              return Card(
-                child: ListTile(
-                  enabled: false,
-                  title: Text(
-                    workout.name,
-                    style:  const TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
-                  subtitle:  Text(
-                    '${workout.sets} sets',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Checkbox(value: workout.isCompleted, onChanged: (_) {
-                        ref.read(workoutProvider.notifier).toggleWorkoutCompletion(workout.id);
-                      }),
-                      IconButton(icon: const Icon(Icons.delete), onPressed: () {
-                        ref.read(workoutProvider.notifier).removeWorkout(workout.id);
-                      }),
-                    ],
-                  ),
-                ),
-              );
-            },
+    final unfillterworkout = ref.watch(workoutProvider);
+    final workouts = unfillterworkout.where((element) => element.type == type,).toList();
+    if(workouts.isEmpty){
+      return Text("You dont have workout ");
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: workouts.length,
+      itemBuilder: (context, index) {
+        final workout = workouts[index];
+        return Card(
+          child: ListTile(
+            enabled: false,
+            title: Text(
+              workout.name,
+              style:   TextStyle(
+                decoration: workout.isCompleted ? TextDecoration.lineThrough : null,
+                color: workout.isCompleted ? Colors.grey : Colors.white,
+              ),
+            ),
+            subtitle:  Text(
+              '${workout.sets} sets',
+              style: const TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(value: workout.isCompleted, onChanged: (_) {
+                  ref.read(workoutProvider.notifier).toggleWorkoutCompletion(workout.id);
+                }),
+                IconButton(icon: const Icon(Icons.delete), onPressed: () {
+                  ref.read(workoutProvider.notifier).removeWorkout(workout.id);
+                }),
+              ],
+            ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }
