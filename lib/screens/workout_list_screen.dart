@@ -1,4 +1,5 @@
-import 'package:fitness_tracker_app/providers/workout_provider.dart';
+import 'package:fitness_tracker_app/providers/quote/qoute_provider.dart';
+import 'package:fitness_tracker_app/providers/workouts/workout_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../enums/workout_type.dart';
@@ -19,14 +20,59 @@ class WorkoutListScreen extends StatelessWidget {
           child: Scaffold(
             appBar: AppBar(
               title: const SizedBox.shrink(),
-              toolbarHeight: 170,
-              flexibleSpace: const SafeArea(
+              toolbarHeight: 200,
+              flexibleSpace: SafeArea(
                 child: Align(
                   alignment: Alignment.bottomCenter,
                   child: Padding(
                     padding:
-                        EdgeInsets.only(bottom: 56.0, left: 16.0, right: 16.0),
-                    child: WorkoutCalendarGraph(),
+                        const EdgeInsets.only(bottom: 56.0, left: 16.0, right: 16.0),
+                    child: Column(
+                      children: [
+                        Consumer(
+                          builder: (_, WidgetRef ref, __) {
+                            final provider = ref.watch(fetchQuotesProvider);
+                            ref.listen(fetchQuotesProvider, (prev , next){
+                              next.maybeWhen(
+                                data: (data){
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text("Quote updated"))
+                                  );
+                                },
+                                orElse: (){
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text("Failed to update quote"))
+                                    );
+                                }
+                                );
+                            });
+                            return provider.map(data: (data){
+                              return Column(
+                                children: [
+                                  Text('"${data.value.quote}"', 
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                     fontStyle: FontStyle.italic)
+                                  ,
+                                  ),
+                                  ElevatedButton(onPressed: () {
+                                    // ref.refresh(fetchQuotesProvider);
+                                    ref.invalidate(fetchQuotesProvider);
+                                  }, child: const Text("Refresh Quote"))
+                                ],
+                              );
+                            }, error: (error){
+                              return const Text("Failed to load quote");
+                            }, loading: (_){
+                              return const CircularProgressIndicator();
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        const WorkoutCalendarGraph(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -41,12 +87,15 @@ class WorkoutListScreen extends StatelessWidget {
               ),
             ),
             body: Column(
-              
               children: [
-                TextButton(onPressed: () {
-                  ref.read(workoutProvider.notifier).clearCompletedWorkouts();
-                }, child: const Text("Clear Completed Workouts")),
-                 const Expanded(
+                TextButton(
+                    onPressed: () {
+                      ref
+                          .read(workoutProvider.notifier)
+                          .clearCompletedWorkouts();
+                    },
+                    child: const Text("Clear Completed Workouts")),
+                const Expanded(
                   child: TabBarView(
                     children: [
                       _WorkoutList(type: WorkoutType.upperBody),
@@ -80,10 +129,14 @@ class _WorkoutList extends ConsumerWidget {
   const _WorkoutList({required this.type});
 
   @override
-  Widget build(BuildContext context ,ref) {
+  Widget build(BuildContext context, ref) {
     final unfillterworkout = ref.watch(workoutProvider);
-    final workouts = unfillterworkout.where((element) => element.type == type,).toList();
-    if(workouts.isEmpty){
+    final workouts = unfillterworkout
+        .where(
+          (element) => element.type == type,
+        )
+        .toList();
+    if (workouts.isEmpty) {
       return Text("You dont have workout ");
     }
     return ListView.builder(
@@ -96,12 +149,13 @@ class _WorkoutList extends ConsumerWidget {
             enabled: false,
             title: Text(
               workout.name,
-              style:   TextStyle(
-                decoration: workout.isCompleted ? TextDecoration.lineThrough : null,
+              style: TextStyle(
+                decoration:
+                    workout.isCompleted ? TextDecoration.lineThrough : null,
                 color: workout.isCompleted ? Colors.grey : Colors.white,
               ),
             ),
-            subtitle:  Text(
+            subtitle: Text(
               '${workout.sets} sets',
               style: const TextStyle(
                 color: Colors.grey,
@@ -110,12 +164,20 @@ class _WorkoutList extends ConsumerWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Checkbox(value: workout.isCompleted, onChanged: (_) {
-                  ref.read(workoutProvider.notifier).toggleWorkoutCompletion(workout.id);
-                }),
-                IconButton(icon: const Icon(Icons.delete), onPressed: () {
-                  ref.read(workoutProvider.notifier).removeWorkout(workout.id);
-                }),
+                Checkbox(
+                    value: workout.isCompleted,
+                    onChanged: (_) {
+                      ref
+                          .read(workoutProvider.notifier)
+                          .toggleWorkoutCompletion(workout.id);
+                    }),
+                IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      ref
+                          .read(workoutProvider.notifier)
+                          .removeWorkout(workout.id);
+                    }),
               ],
             ),
           ),

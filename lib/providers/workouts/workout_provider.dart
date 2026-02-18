@@ -1,7 +1,7 @@
 import 'package:fitness_tracker_app/enums/workout_type.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
-import '../models/workout.dart';
+import '../../models/workout/workout.dart';
 
 part 'workout_provider.g.dart';
 

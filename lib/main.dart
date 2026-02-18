@@ -1,5 +1,5 @@
 import 'package:fitness_tracker_app/core/constents.dart';
-import 'package:fitness_tracker_app/providers/onboarding_provider.dart';
+import 'package:fitness_tracker_app/providers/onboading/onboarding_provider.dart';
 import 'package:fitness_tracker_app/screens/workout_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
